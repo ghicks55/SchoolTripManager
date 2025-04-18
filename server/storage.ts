@@ -1,13 +1,22 @@
-import { users, groups, itineraries, busSuppliers, meals, roster, roomingList, chaperoneGroups, disneyExperience, actionItems } from "@shared/schema";
-import type { User, InsertUser, Group, InsertGroup, Itinerary, InsertItinerary, BusSupplier, InsertBusSupplier, Meal, InsertMeal, Roster, InsertRoster, RoomingList, InsertRoomingList, ChaperoneGroup, InsertChaperoneGroup, DisneyExperience, InsertDisneyExperience, ActionItem, InsertActionItem } from "@shared/schema";
-import session from "express-session";
+import { users, type User, type InsertUser } from "@shared/schema";
+import { groups, type Group, type InsertGroup } from "@shared/schema";
+import { itineraries, type Itinerary, type InsertItinerary } from "@shared/schema";
+import { busSuppliers, type BusSupplier, type InsertBusSupplier } from "@shared/schema";
+import { lunches, type Lunch, type InsertLunch } from "@shared/schema";
+import { rosters, type Roster, type InsertRoster } from "@shared/schema";
+import { waitingList, type WaitingListEntry, type InsertWaitingListEntry } from "@shared/schema";
+import { dropOffs, type DropOff, type InsertDropOff } from "@shared/schema";
+import { roomingList, type RoomingListEntry, type InsertRoomingListEntry } from "@shared/schema";
+import { chaperoneGroups, type ChaperoneGroup, type InsertChaperoneGroup } from "@shared/schema";
+import { disneyExperience, type DisneyExperienceEntry, type InsertDisneyExperienceEntry } from "@shared/schema";
+import { activities, type Activity, type InsertActivity } from "@shared/schema";
 import createMemoryStore from "memorystore";
+import session from "express-session";
 
 const MemoryStore = createMemoryStore(session);
 
-// Storage interface
 export interface IStorage {
-  // Auth
+  // User management
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
@@ -16,60 +25,66 @@ export interface IStorage {
   getAllGroups(): Promise<Group[]>;
   getGroup(id: number): Promise<Group | undefined>;
   createGroup(group: InsertGroup): Promise<Group>;
-  updateGroup(id: number, group: Partial<InsertGroup>): Promise<Group | undefined>;
+  updateGroup(id: number, group: Partial<Group>): Promise<Group | undefined>;
   deleteGroup(id: number): Promise<boolean>;
   
   // Itineraries
   getItinerariesByGroupId(groupId: number): Promise<Itinerary[]>;
   createItinerary(itinerary: InsertItinerary): Promise<Itinerary>;
-  updateItinerary(id: number, itinerary: Partial<InsertItinerary>): Promise<Itinerary | undefined>;
+  updateItinerary(id: number, itinerary: Partial<Itinerary>): Promise<Itinerary | undefined>;
   deleteItinerary(id: number): Promise<boolean>;
   
   // Bus Suppliers
   getAllBusSuppliers(): Promise<BusSupplier[]>;
   getBusSupplier(id: number): Promise<BusSupplier | undefined>;
-  createBusSupplier(supplier: InsertBusSupplier): Promise<BusSupplier>;
-  updateBusSupplier(id: number, supplier: Partial<InsertBusSupplier>): Promise<BusSupplier | undefined>;
+  createBusSupplier(busSupplier: InsertBusSupplier): Promise<BusSupplier>;
+  updateBusSupplier(id: number, busSupplier: Partial<BusSupplier>): Promise<BusSupplier | undefined>;
   deleteBusSupplier(id: number): Promise<boolean>;
   
-  // Meals
-  getMealsByGroupId(groupId: number): Promise<Meal[]>;
-  createMeal(meal: InsertMeal): Promise<Meal>;
-  updateMeal(id: number, meal: Partial<InsertMeal>): Promise<Meal | undefined>;
-  deleteMeal(id: number): Promise<boolean>;
+  // Lunches
+  getLunchesByGroupId(groupId: number): Promise<Lunch[]>;
+  createLunch(lunch: InsertLunch): Promise<Lunch>;
+  updateLunch(id: number, lunch: Partial<Lunch>): Promise<Lunch | undefined>;
+  deleteLunch(id: number): Promise<boolean>;
   
-  // Roster
-  getRosterByGroupId(groupId: number): Promise<Roster[]>;
-  getRosterItem(id: number): Promise<Roster | undefined>;
-  createRosterItem(item: InsertRoster): Promise<Roster>;
-  updateRosterItem(id: number, item: Partial<InsertRoster>): Promise<Roster | undefined>;
-  deleteRosterItem(id: number): Promise<boolean>;
-  getWaitingListByGroupId(groupId: number): Promise<Roster[]>;
-  getDroppedByGroupId(groupId: number): Promise<Roster[]>;
+  // Rosters
+  getRostersByGroupId(groupId: number): Promise<Roster[]>;
+  createRoster(roster: InsertRoster): Promise<Roster>;
+  updateRoster(id: number, roster: Partial<Roster>): Promise<Roster | undefined>;
+  deleteRoster(id: number): Promise<boolean>;
+  
+  // Waiting List
+  getWaitingListByGroupId(groupId: number): Promise<WaitingListEntry[]>;
+  createWaitingListEntry(entry: InsertWaitingListEntry): Promise<WaitingListEntry>;
+  deleteWaitingListEntry(id: number): Promise<boolean>;
+  moveFromWaitingListToRoster(id: number): Promise<Roster | undefined>;
+  
+  // Drop Offs
+  getDropOffsByGroupId(groupId: number): Promise<DropOff[]>;
+  createDropOff(dropOff: InsertDropOff): Promise<DropOff>;
   
   // Rooming List
-  getRoomingListByGroupId(groupId: number): Promise<RoomingList[]>;
-  createRoomingListItem(item: InsertRoomingList): Promise<RoomingList>;
-  updateRoomingListItem(id: number, item: Partial<InsertRoomingList>): Promise<RoomingList | undefined>;
-  deleteRoomingListItem(id: number): Promise<boolean>;
+  getRoomingListByGroupId(groupId: number): Promise<RoomingListEntry[]>;
+  createRoomingListEntry(entry: InsertRoomingListEntry): Promise<RoomingListEntry>;
+  updateRoomingListEntry(id: number, entry: Partial<RoomingListEntry>): Promise<RoomingListEntry | undefined>;
+  deleteRoomingListEntry(id: number): Promise<boolean>;
   
   // Chaperone Groups
   getChaperoneGroupsByGroupId(groupId: number): Promise<ChaperoneGroup[]>;
   createChaperoneGroup(group: InsertChaperoneGroup): Promise<ChaperoneGroup>;
-  updateChaperoneGroup(id: number, group: Partial<InsertChaperoneGroup>): Promise<ChaperoneGroup | undefined>;
+  updateChaperoneGroup(id: number, group: Partial<ChaperoneGroup>): Promise<ChaperoneGroup | undefined>;
   deleteChaperoneGroup(id: number): Promise<boolean>;
   
   // Disney Experience
-  getDisneyExperienceByTravelerId(travelerId: number): Promise<DisneyExperience | undefined>;
-  createDisneyExperience(item: InsertDisneyExperience): Promise<DisneyExperience>;
-  updateDisneyExperience(id: number, item: Partial<InsertDisneyExperience>): Promise<DisneyExperience | undefined>;
+  getDisneyExperienceByGroupId(groupId: number): Promise<DisneyExperienceEntry[]>;
+  createDisneyExperienceEntry(entry: InsertDisneyExperienceEntry): Promise<DisneyExperienceEntry>;
+  updateDisneyExperienceEntry(id: number, entry: Partial<DisneyExperienceEntry>): Promise<DisneyExperienceEntry | undefined>;
+  deleteDisneyExperienceEntry(id: number): Promise<boolean>;
   
-  // Action Items
-  getActionItems(): Promise<ActionItem[]>;
-  getActionItemsByGroupId(groupId: number): Promise<ActionItem[]>;
-  createActionItem(item: InsertActionItem): Promise<ActionItem>;
-  updateActionItem(id: number, item: Partial<InsertActionItem>): Promise<ActionItem | undefined>;
-  deleteActionItem(id: number): Promise<boolean>;
+  // Activities
+  getAllActivities(limit?: number): Promise<Activity[]>;
+  getActivitiesByGroupId(groupId: number, limit?: number): Promise<Activity[]>;
+  createActivity(activity: InsertActivity): Promise<Activity>;
   
   // Session store
   sessionStore: session.SessionStore;
@@ -80,51 +95,59 @@ export class MemStorage implements IStorage {
   private groups: Map<number, Group>;
   private itineraries: Map<number, Itinerary>;
   private busSuppliers: Map<number, BusSupplier>;
-  private meals: Map<number, Meal>;
-  private roster: Map<number, Roster>;
-  private roomingList: Map<number, RoomingList>;
+  private lunches: Map<number, Lunch>;
+  private rosters: Map<number, Roster>;
+  private waitingListEntries: Map<number, WaitingListEntry>;
+  private dropOffs: Map<number, DropOff>;
+  private roomingListEntries: Map<number, RoomingListEntry>;
   private chaperoneGroups: Map<number, ChaperoneGroup>;
-  private disneyExperience: Map<number, DisneyExperience>;
-  private actionItems: Map<number, ActionItem>;
-  
-  public sessionStore: session.SessionStore;
+  private disneyExperienceEntries: Map<number, DisneyExperienceEntry>;
+  private activities: Map<number, Activity>;
   
   private userCurrentId: number;
   private groupCurrentId: number;
   private itineraryCurrentId: number;
   private busSupplierCurrentId: number;
-  private mealCurrentId: number;
+  private lunchCurrentId: number;
   private rosterCurrentId: number;
+  private waitingListCurrentId: number;
+  private dropOffCurrentId: number;
   private roomingListCurrentId: number;
   private chaperoneGroupCurrentId: number;
   private disneyExperienceCurrentId: number;
-  private actionItemCurrentId: number;
+  private activityCurrentId: number;
+  
+  sessionStore: session.SessionStore;
 
   constructor() {
     this.users = new Map();
     this.groups = new Map();
     this.itineraries = new Map();
     this.busSuppliers = new Map();
-    this.meals = new Map();
-    this.roster = new Map();
-    this.roomingList = new Map();
+    this.lunches = new Map();
+    this.rosters = new Map();
+    this.waitingListEntries = new Map();
+    this.dropOffs = new Map();
+    this.roomingListEntries = new Map();
     this.chaperoneGroups = new Map();
-    this.disneyExperience = new Map();
-    this.actionItems = new Map();
+    this.disneyExperienceEntries = new Map();
+    this.activities = new Map();
     
     this.userCurrentId = 1;
     this.groupCurrentId = 1;
     this.itineraryCurrentId = 1;
     this.busSupplierCurrentId = 1;
-    this.mealCurrentId = 1;
+    this.lunchCurrentId = 1;
     this.rosterCurrentId = 1;
+    this.waitingListCurrentId = 1;
+    this.dropOffCurrentId = 1;
     this.roomingListCurrentId = 1;
     this.chaperoneGroupCurrentId = 1;
     this.disneyExperienceCurrentId = 1;
-    this.actionItemCurrentId = 1;
+    this.activityCurrentId = 1;
     
     this.sessionStore = new MemoryStore({
-      checkPeriod: 86400000,
+      checkPeriod: 86400000 // prune expired entries every 24h
     });
   }
 
@@ -141,7 +164,7 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userCurrentId++;
-    const user: User = { ...insertUser, id };
+    const user = { ...insertUser, id };
     this.users.set(id, user);
     return user;
   }
@@ -155,24 +178,58 @@ export class MemStorage implements IStorage {
     return this.groups.get(id);
   }
 
-  async createGroup(group: InsertGroup): Promise<Group> {
+  async createGroup(insertGroup: InsertGroup): Promise<Group> {
     const id = this.groupCurrentId++;
-    const newGroup: Group = { ...group, id, createdAt: new Date() };
-    this.groups.set(id, newGroup);
-    return newGroup;
+    const group: Group = { ...insertGroup, id };
+    this.groups.set(id, group);
+    
+    // Create an activity record
+    await this.createActivity({
+      groupId: id,
+      type: 'created',
+      description: `New group created: ${group.schoolName} - ${group.groupName}`,
+      timestamp: new Date(),
+      userId: null
+    });
+    
+    return group;
   }
 
-  async updateGroup(id: number, group: Partial<InsertGroup>): Promise<Group | undefined> {
-    const existingGroup = this.groups.get(id);
-    if (!existingGroup) return undefined;
+  async updateGroup(id: number, groupUpdate: Partial<Group>): Promise<Group | undefined> {
+    const group = this.groups.get(id);
+    if (!group) return undefined;
     
-    const updatedGroup = { ...existingGroup, ...group };
+    const updatedGroup = { ...group, ...groupUpdate, updatedAt: new Date() };
     this.groups.set(id, updatedGroup);
+    
+    // Create an activity record for the update
+    await this.createActivity({
+      groupId: id,
+      type: 'updated',
+      description: `Group updated: ${updatedGroup.schoolName} - ${updatedGroup.groupName}`,
+      timestamp: new Date(),
+      userId: null
+    });
+    
     return updatedGroup;
   }
 
   async deleteGroup(id: number): Promise<boolean> {
-    return this.groups.delete(id);
+    const group = this.groups.get(id);
+    if (!group) return false;
+    
+    this.groups.delete(id);
+    
+    // Create an activity record
+    await this.createActivity({
+      groupId: null,
+      type: 'deleted',
+      description: `Group deleted: ${group.schoolName} - ${group.groupName}`,
+      timestamp: new Date(),
+      userId: null
+    });
+    
+    return true;
   }
 
   // Itinerary methods
@@ -182,18 +239,18 @@ export class MemStorage implements IStorage {
     );
   }
 
-  async createItinerary(itinerary: InsertItinerary): Promise<Itinerary> {
+  async createItinerary(insertItinerary: InsertItinerary): Promise<Itinerary> {
     const id = this.itineraryCurrentId++;
-    const newItinerary: Itinerary = { ...itinerary, id };
-    this.itineraries.set(id, newItinerary);
-    return newItinerary;
+    const itinerary: Itinerary = { ...insertItinerary, id };
+    this.itineraries.set(id, itinerary);
+    return itinerary;
   }
 
-  async updateItinerary(id: number, itinerary: Partial<InsertItinerary>): Promise<Itinerary | undefined> {
-    const existingItinerary = this.itineraries.get(id);
-    if (!existingItinerary) return undefined;
+  async updateItinerary(id: number, itineraryUpdate: Partial<Itinerary>): Promise<Itinerary | undefined> {
+    const itinerary = this.itineraries.get(id);
+    if (!itinerary) return undefined;
     
-    const updatedItinerary = { ...existingItinerary, ...itinerary };
+    const updatedItinerary = { ...itinerary, ...itineraryUpdate };
     this.itineraries.set(id, updatedItinerary);
     return updatedItinerary;
   }
@@ -211,142 +268,242 @@ export class MemStorage implements IStorage {
     return this.busSuppliers.get(id);
   }
 
-  async createBusSupplier(supplier: InsertBusSupplier): Promise<BusSupplier> {
+  async createBusSupplier(insertBusSupplier: InsertBusSupplier): Promise<BusSupplier> {
     const id = this.busSupplierCurrentId++;
-    const newSupplier: BusSupplier = { ...supplier, id };
-    this.busSuppliers.set(id, newSupplier);
-    return newSupplier;
+    const busSupplier: BusSupplier = { ...insertBusSupplier, id };
+    this.busSuppliers.set(id, busSupplier);
+    return busSupplier;
   }
 
-  async updateBusSupplier(id: number, supplier: Partial<InsertBusSupplier>): Promise<BusSupplier | undefined> {
-    const existingSupplier = this.busSuppliers.get(id);
-    if (!existingSupplier) return undefined;
+  async updateBusSupplier(id: number, busSupplierUpdate: Partial<BusSupplier>): Promise<BusSupplier | undefined> {
+    const busSupplier = this.busSuppliers.get(id);
+    if (!busSupplier) return undefined;
     
-    const updatedSupplier = { ...existingSupplier, ...supplier };
-    this.busSuppliers.set(id, updatedSupplier);
-    return updatedSupplier;
+    const updatedBusSupplier = { ...busSupplier, ...busSupplierUpdate };
+    this.busSuppliers.set(id, updatedBusSupplier);
+    return updatedBusSupplier;
   }
 
   async deleteBusSupplier(id: number): Promise<boolean> {
     return this.busSuppliers.delete(id);
   }
 
-  // Meal methods
-  async getMealsByGroupId(groupId: number): Promise<Meal[]> {
-    return Array.from(this.meals.values()).filter(
-      (meal) => meal.groupId === groupId,
+  // Lunch methods
+  async getLunchesByGroupId(groupId: number): Promise<Lunch[]> {
+    return Array.from(this.lunches.values()).filter(
+      (lunch) => lunch.groupId === groupId,
     );
   }
 
-  async createMeal(meal: InsertMeal): Promise<Meal> {
-    const id = this.mealCurrentId++;
-    const newMeal: Meal = { ...meal, id };
-    this.meals.set(id, newMeal);
-    return newMeal;
+  async createLunch(insertLunch: InsertLunch): Promise<Lunch> {
+    const id = this.lunchCurrentId++;
+    const lunch: Lunch = { ...insertLunch, id };
+    this.lunches.set(id, lunch);
+    return lunch;
   }
 
-  async updateMeal(id: number, meal: Partial<InsertMeal>): Promise<Meal | undefined> {
-    const existingMeal = this.meals.get(id);
-    if (!existingMeal) return undefined;
+  async updateLunch(id: number, lunchUpdate: Partial<Lunch>): Promise<Lunch | undefined> {
+    const lunch = this.lunches.get(id);
+    if (!lunch) return undefined;
     
-    const updatedMeal = { ...existingMeal, ...meal };
-    this.meals.set(id, updatedMeal);
-    return updatedMeal;
+    const updatedLunch = { ...lunch, ...lunchUpdate };
+    this.lunches.set(id, updatedLunch);
+    return updatedLunch;
   }
 
-  async deleteMeal(id: number): Promise<boolean> {
-    return this.meals.delete(id);
+  async deleteLunch(id: number): Promise<boolean> {
+    return this.lunches.delete(id);
   }
 
   // Roster methods
-  async getRosterByGroupId(groupId: number): Promise<Roster[]> {
-    return Array.from(this.roster.values()).filter(
-      (item) => item.groupId === groupId && !item.isWaitingList && !item.isDropped,
+  async getRostersByGroupId(groupId: number): Promise<Roster[]> {
+    return Array.from(this.rosters.values()).filter(
+      (roster) => roster.groupId === groupId,
     );
   }
 
-  async getRosterItem(id: number): Promise<Roster | undefined> {
-    return this.roster.get(id);
-  }
-
-  async createRosterItem(item: InsertRoster): Promise<Roster> {
+  async createRoster(insertRoster: InsertRoster): Promise<Roster> {
     const id = this.rosterCurrentId++;
-    const newItem: Roster = { ...item, id };
-    this.roster.set(id, newItem);
-    return newItem;
-  }
-
-  async updateRosterItem(id: number, item: Partial<InsertRoster>): Promise<Roster | undefined> {
-    const existingItem = this.roster.get(id);
-    if (!existingItem) return undefined;
+    const roster: Roster = { ...insertRoster, id };
+    this.rosters.set(id, roster);
     
-    const updatedItem = { ...existingItem, ...item };
-    this.roster.set(id, updatedItem);
-    return updatedItem;
+    // Create an activity record
+    const group = await this.getGroup(roster.groupId);
+    await this.createActivity({
+      groupId: roster.groupId,
+      type: 'roster',
+      description: `New traveler added: ${roster.firstName} ${roster.lastName} (${roster.travelerType})`,
+      timestamp: new Date(),
+      userId: null
+    });
+    
+    return roster;
   }
 
-  async deleteRosterItem(id: number): Promise<boolean> {
-    return this.roster.delete(id);
+  async updateRoster(id: number, rosterUpdate: Partial<Roster>): Promise<Roster | undefined> {
+    const roster = this.rosters.get(id);
+    if (!roster) return undefined;
+    
+    const updatedRoster = { ...roster, ...rosterUpdate };
+    this.rosters.set(id, updatedRoster);
+    return updatedRoster;
   }
 
-  async getWaitingListByGroupId(groupId: number): Promise<Roster[]> {
-    return Array.from(this.roster.values()).filter(
-      (item) => item.groupId === groupId && item.isWaitingList === true,
+  async deleteRoster(id: number): Promise<boolean> {
+    const roster = this.rosters.get(id);
+    if (!roster) return false;
+    
+    // Create a drop off record
+    await this.createDropOff({
+      groupId: roster.groupId,
+      travelerType: roster.travelerType,
+      firstName: roster.firstName,
+      lastName: roster.lastName,
+      reason: "Removed from roster"
+    });
+    
+    // Create an activity
+    await this.createActivity({
+      groupId: roster.groupId,
+      type: 'drop_off',
+      description: `Traveler removed: ${roster.firstName} ${roster.lastName} (${roster.travelerType})`,
+      timestamp: new Date(),
+      userId: null
+    });
+    
+    return this.rosters.delete(id);
+  }
+
+  // Waiting List methods
+  async getWaitingListByGroupId(groupId: number): Promise<WaitingListEntry[]> {
+    return Array.from(this.waitingListEntries.values()).filter(
+      (entry) => entry.groupId === groupId,
     );
   }
 
-  async getDroppedByGroupId(groupId: number): Promise<Roster[]> {
-    return Array.from(this.roster.values()).filter(
-      (item) => item.groupId === groupId && item.isDropped === true,
+  async createWaitingListEntry(insertEntry: InsertWaitingListEntry): Promise<WaitingListEntry> {
+    const id = this.waitingListCurrentId++;
+    const entry: WaitingListEntry = { ...insertEntry, id };
+    this.waitingListEntries.set(id, entry);
+    
+    // Create an activity
+    await this.createActivity({
+      groupId: entry.groupId,
+      type: 'waiting_list',
+      description: `Added to waiting list: ${entry.firstName} ${entry.lastName} (${entry.travelerType})`,
+      timestamp: new Date(),
+      userId: null
+    });
+    
+    return entry;
+  }
+
+  async deleteWaitingListEntry(id: number): Promise<boolean> {
+    return this.waitingListEntries.delete(id);
+  }
+
+  async moveFromWaitingListToRoster(id: number): Promise<Roster | undefined> {
+    const waitingListEntry = this.waitingListEntries.get(id);
+    if (!waitingListEntry) return undefined;
+    
+    // Create a new roster entry
+    const roster = await this.createRoster({
+      groupId: waitingListEntry.groupId,
+      travelerType: waitingListEntry.travelerType,
+      firstName: waitingListEntry.firstName,
+      lastName: waitingListEntry.lastName,
+      gender: waitingListEntry.gender,
+      dateOfBirth: waitingListEntry.dateOfBirth,
+      address: waitingListEntry.address,
+      city: waitingListEntry.city,
+      state: waitingListEntry.state,
+      zip: waitingListEntry.zip,
+      parentEmail: waitingListEntry.parentEmail,
+      parentPhone: waitingListEntry.parentPhone,
+      magicBandColor: null,
+      tShirtSize: null,
+      meal: null,
+      insurance: null,
+      roomOccupancy: null,
+      requestedRoommate: null,
+      notes: "Moved from waiting list"
+    });
+    
+    // Remove from waiting list
+    this.waitingListEntries.delete(id);
+    
+    // Create an activity
+    await this.createActivity({
+      groupId: waitingListEntry.groupId,
+      type: 'promotion',
+      description: `Promoted from waiting list to roster: ${waitingListEntry.firstName} ${waitingListEntry.lastName}`,
+      timestamp: new Date(),
+      userId: null
+    });
+    
+    return roster;
+  }
+
+  // Drop Offs methods
+  async getDropOffsByGroupId(groupId: number): Promise<DropOff[]> {
+    return Array.from(this.dropOffs.values()).filter(
+      (dropOff) => dropOff.groupId === groupId,
     );
+  }
+
+  async createDropOff(insertDropOff: InsertDropOff): Promise<DropOff> {
+    const id = this.dropOffCurrentId++;
+    const dropOff: DropOff = { ...insertDropOff, id };
+    this.dropOffs.set(id, dropOff);
+    return dropOff;
   }
 
   // Rooming List methods
-  async getRoomingListByGroupId(groupId: number): Promise<RoomingList[]> {
-    return Array.from(this.roomingList.values()).filter(
-      (item) => item.groupId === groupId,
+  async getRoomingListByGroupId(groupId: number): Promise<RoomingListEntry[]> {
+    return Array.from(this.roomingListEntries.values()).filter(
+      (entry) => entry.groupId === groupId,
     );
   }
 
-  async createRoomingListItem(item: InsertRoomingList): Promise<RoomingList> {
+  async createRoomingListEntry(insertEntry: InsertRoomingListEntry): Promise<RoomingListEntry> {
     const id = this.roomingListCurrentId++;
-    const newItem: RoomingList = { ...item, id };
-    this.roomingList.set(id, newItem);
-    return newItem;
+    const entry: RoomingListEntry = { ...insertEntry, id };
+    this.roomingListEntries.set(id, entry);
+    return entry;
   }
 
-  async updateRoomingListItem(id: number, item: Partial<InsertRoomingList>): Promise<RoomingList | undefined> {
-    const existingItem = this.roomingList.get(id);
-    if (!existingItem) return undefined;
+  async updateRoomingListEntry(id: number, entryUpdate: Partial<RoomingListEntry>): Promise<RoomingListEntry | undefined> {
+    const entry = this.roomingListEntries.get(id);
+    if (!entry) return undefined;
     
-    const updatedItem = { ...existingItem, ...item };
-    this.roomingList.set(id, updatedItem);
-    return updatedItem;
+    const updatedEntry = { ...entry, ...entryUpdate };
+    this.roomingListEntries.set(id, updatedEntry);
+    return updatedEntry;
   }
 
-  async deleteRoomingListItem(id: number): Promise<boolean> {
-    return this.roomingList.delete(id);
+  async deleteRoomingListEntry(id: number): Promise<boolean> {
+    return this.roomingListEntries.delete(id);
   }
 
   // Chaperone Groups methods
   async getChaperoneGroupsByGroupId(groupId: number): Promise<ChaperoneGroup[]> {
     return Array.from(this.chaperoneGroups.values()).filter(
-      (item) => item.groupId === groupId,
+      (group) => group.groupId === groupId,
     );
   }
 
-  async createChaperoneGroup(group: InsertChaperoneGroup): Promise<ChaperoneGroup> {
+  async createChaperoneGroup(insertGroup: InsertChaperoneGroup): Promise<ChaperoneGroup> {
     const id = this.chaperoneGroupCurrentId++;
-    const newGroup: ChaperoneGroup = { ...group, id };
-    this.chaperoneGroups.set(id, newGroup);
-    return newGroup;
+    const group: ChaperoneGroup = { ...insertGroup, id };
+    this.chaperoneGroups.set(id, group);
+    return group;
   }
 
-  async updateChaperoneGroup(id: number, group: Partial<InsertChaperoneGroup>): Promise<ChaperoneGroup | undefined> {
-    const existingGroup = this.chaperoneGroups.get(id);
-    if (!existingGroup) return undefined;
+  async updateChaperoneGroup(id: number, groupUpdate: Partial<ChaperoneGroup>): Promise<ChaperoneGroup | undefined> {
+    const group = this.chaperoneGroups.get(id);
+    if (!group) return undefined;
     
-    const updatedGroup = { ...existingGroup, ...group };
+    const updatedGroup = { ...group, ...groupUpdate };
     this.chaperoneGroups.set(id, updatedGroup);
     return updatedGroup;
   }
@@ -356,57 +513,53 @@ export class MemStorage implements IStorage {
   }
 
   // Disney Experience methods
-  async getDisneyExperienceByTravelerId(travelerId: number): Promise<DisneyExperience | undefined> {
-    return Array.from(this.disneyExperience.values()).find(
-      (item) => item.travelerId === travelerId,
+  async getDisneyExperienceByGroupId(groupId: number): Promise<DisneyExperienceEntry[]> {
+    return Array.from(this.disneyExperienceEntries.values()).filter(
+      (entry) => entry.groupId === groupId,
     );
   }
 
-  async createDisneyExperience(item: InsertDisneyExperience): Promise<DisneyExperience> {
+  async createDisneyExperienceEntry(insertEntry: InsertDisneyExperienceEntry): Promise<DisneyExperienceEntry> {
     const id = this.disneyExperienceCurrentId++;
-    const newItem: DisneyExperience = { ...item, id };
-    this.disneyExperience.set(id, newItem);
-    return newItem;
+    const entry: DisneyExperienceEntry = { ...insertEntry, id };
+    this.disneyExperienceEntries.set(id, entry);
+    return entry;
   }
 
-  async updateDisneyExperience(id: number, item: Partial<InsertDisneyExperience>): Promise<DisneyExperience | undefined> {
-    const existingItem = this.disneyExperience.get(id);
-    if (!existingItem) return undefined;
+  async updateDisneyExperienceEntry(id: number, entryUpdate: Partial<DisneyExperienceEntry>): Promise<DisneyExperienceEntry | undefined> {
+    const entry = this.disneyExperienceEntries.get(id);
+    if (!entry) return undefined;
     
-    const updatedItem = { ...existingItem, ...item };
-    this.disneyExperience.set(id, updatedItem);
-    return updatedItem;
+    const updatedEntry = { ...entry, ...entryUpdate };
+    this.disneyExperienceEntries.set(id, updatedEntry);
+    return updatedEntry;
   }
 
-  // Action Items methods
-  async getActionItems(): Promise<ActionItem[]> {
-    return Array.from(this.actionItems.values());
+  async deleteDisneyExperienceEntry(id: number): Promise<boolean> {
+    return this.disneyExperienceEntries.delete(id);
   }
 
-  async getActionItemsByGroupId(groupId: number): Promise<ActionItem[]> {
-    return Array.from(this.actionItems.values()).filter(
-      (item) => item.groupId === groupId,
-    );
-  }
-
-  async createActionItem(item: InsertActionItem): Promise<ActionItem> {
-    const id = this.actionItemCurrentId++;
-    const newItem: ActionItem = { ...item, id, createdAt: new Date() };
-    this.actionItems.set(id, newItem);
-    return newItem;
-  }
-
-  async updateActionItem(id: number, item: Partial<InsertActionItem>): Promise<ActionItem | undefined> {
-    const existingItem = this.actionItems.get(id);
-    if (!existingItem) return undefined;
+  // Activities methods
+  async getAllActivities(limit?: number): Promise<Activity[]> {
+    const activities = Array.from(this.activities.values())
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
     
-    const updatedItem = { ...existingItem, ...item };
-    this.actionItems.set(id, updatedItem);
-    return updatedItem;
+    return limit ? activities.slice(0, limit) : activities;
   }
 
-  async deleteActionItem(id: number): Promise<boolean> {
-    return this.actionItems.delete(id);
+  async getActivitiesByGroupId(groupId: number, limit?: number): Promise<Activity[]> {
+    const activities = Array.from(this.activities.values())
+      .filter(activity => activity.groupId === groupId)
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    
+    return limit ? activities.slice(0, limit) : activities;
+  }
+
+  async createActivity(insertActivity: InsertActivity): Promise<Activity> {
+    const id = this.activityCurrentId++;
+    const activity: Activity = { ...insertActivity, id };
+    this.activities.set(id, activity);
+    return activity;
   }
 }
 

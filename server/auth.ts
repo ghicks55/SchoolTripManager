@@ -30,13 +30,10 @@ async function comparePasswords(supplied: string, stored: string) {
 
 export function setupAuth(app: Express) {
   const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || "school-trip-planner-secret",
+    secret: process.env.SESSION_SECRET || "school-trips-session-secret",
     resave: false,
     saveUninitialized: false,
     store: storage.sessionStore,
-    cookie: {
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
-    }
   };
 
   app.set("trust proxy", 1);
@@ -67,27 +64,19 @@ export function setupAuth(app: Express) {
       return res.status(400).send("Username already exists");
     }
 
-    try {
-      const user = await storage.createUser({
-        ...req.body,
-        password: await hashPassword(req.body.password),
-      });
+    const user = await storage.createUser({
+      ...req.body,
+      password: await hashPassword(req.body.password),
+    });
 
-      req.login(user, (err) => {
-        if (err) return next(err);
-        // Don't send password in response
-        const { password, ...userWithoutPassword } = user;
-        res.status(201).json(userWithoutPassword);
-      });
-    } catch (error) {
-      res.status(500).send("Error creating user");
-    }
+    req.login(user, (err) => {
+      if (err) return next(err);
+      res.status(201).json(user);
+    });
   });
 
   app.post("/api/login", passport.authenticate("local"), (req, res) => {
-    // Don't send password in response
-    const { password, ...userWithoutPassword } = req.user as SelectUser;
-    res.status(200).json(userWithoutPassword);
+    res.status(200).json(req.user);
   });
 
   app.post("/api/logout", (req, res, next) => {
@@ -99,23 +88,6 @@ export function setupAuth(app: Express) {
 
   app.get("/api/user", (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
-    // Don't send password in response
-    const { password, ...userWithoutPassword } = req.user as SelectUser;
-    res.json(userWithoutPassword);
+    res.json(req.user);
   });
-  
-  // Create admin user for testing if it doesn't exist
-  (async () => {
-    const adminExists = await storage.getUserByUsername("admin");
-    if (!adminExists) {
-      await storage.createUser({
-        username: "admin",
-        password: await hashPassword("admin123"),
-        fullName: "Admin User",
-        email: "admin@example.com",
-        role: "admin"
-      });
-      console.log("Admin user created!");
-    }
-  })();
 }

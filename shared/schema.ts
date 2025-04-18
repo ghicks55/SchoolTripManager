@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, date, timestamp, customType } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, date, decimal, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -7,20 +7,12 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
-  fullName: text("full_name").notNull(),
   email: text("email").notNull(),
-  role: text("role").notNull().default("user"), // admin, director, agent, chaperone
+  role: text("role").notNull().default("user"),
+  fullName: text("full_name").notNull(),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
-  fullName: true,
-  email: true,
-  role: true,
-});
-
-// Groups table
+// School groups table
 export const groups = pgTable("groups", {
   id: serial("id").primaryKey(),
   schoolName: text("school_name").notNull(),
@@ -28,7 +20,7 @@ export const groups = pgTable("groups", {
   location: text("location").notNull(),
   startDate: date("start_date").notNull(),
   endDate: date("end_date").notNull(),
-  openRegistrationDate: date("open_registration_date"),
+  registrationDate: date("registration_date"),
   gmrNumber: text("gmr_number"),
   director: text("director"),
   directorEmail: text("director_email"),
@@ -36,41 +28,28 @@ export const groups = pgTable("groups", {
   busSupplier: text("bus_supplier"),
   totalBuses: integer("total_buses"),
   busCharterNumber: text("bus_charter_number"),
-  busCost: integer("bus_cost"),
+  busCost: decimal("bus_cost", { precision: 10, scale: 2 }),
   busDepositPaidDate: date("bus_deposit_paid_date"),
-  busDepositAmount: integer("bus_deposit_amount"),
+  busDepositAmount: decimal("bus_deposit_amount", { precision: 10, scale: 2 }),
   contractSent: boolean("contract_sent").default(false),
   contractSigned: boolean("contract_signed").default(false),
   planEarsWorkshopRegistered: boolean("plan_ears_workshop_registered").default(false),
   insurancePurchased: boolean("insurance_purchased").default(false),
   moneyCollectionStarted: boolean("money_collection_started").default(false),
-  status: text("status").default("pending"), // pending, confirmed, active, completed
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const insertGroupSchema = createInsertSchema(groups).omit({
-  id: true,
-  createdAt: true,
-});
-
-// Group Itineraries table
+// Group itinerary table
 export const itineraries = pgTable("itineraries", {
   id: serial("id").primaryKey(),
   groupId: integer("group_id").notNull(),
-  dayNumber: integer("day_number").notNull(),
+  day: integer("day").notNull(),
   date: date("date").notNull(),
-  activity: text("activity").notNull(),
-  startTime: text("start_time"),
-  endTime: text("end_time"),
-  location: text("location"),
-  notes: text("notes"),
+  activity: text("activity"),
 });
 
-export const insertItinerarySchema = createInsertSchema(itineraries).omit({
-  id: true,
-});
-
-// Bus Suppliers table
+// Bus supplier table
 export const busSuppliers = pgTable("bus_suppliers", {
   id: serial("id").primaryKey(),
   companyName: text("company_name").notNull(),
@@ -80,33 +59,24 @@ export const busSuppliers = pgTable("bus_suppliers", {
   contactPhone: text("contact_phone"),
   contactEmail: text("contact_email"),
   contractFile: text("contract_file"),
-  availableBuses: integer("available_buses"),
+  totalBusesAvailable: integer("total_buses_available"),
 });
 
-export const insertBusSupplierSchema = createInsertSchema(busSuppliers).omit({
-  id: true,
-});
-
-// Meal table
-export const meals = pgTable("meals", {
+// Lunch table
+export const lunches = pgTable("lunches", {
   id: serial("id").primaryKey(),
   groupId: integer("group_id").notNull(),
-  date: date("date").notNull(),
-  time: text("time").notNull(),
-  gmrSubCount: integer("gmr_sub_count").default(0),
-  turkeySubCount: integer("turkey_sub_count").default(0),
-  italianSubCount: integer("italian_sub_count").default(0),
-  veggieSubCount: integer("veggie_sub_count").default(0),
-  saladCount: integer("salad_count").default(0),
-  notes: text("notes"),
-});
-
-export const insertMealSchema = createInsertSchema(meals).omit({
-  id: true,
+  gmrSubTotal: integer("gmr_sub_total").default(0),
+  turkeySubTotal: integer("turkey_sub_total").default(0),
+  italianSubTotal: integer("italian_sub_total").default(0),
+  veggieSubTotal: integer("veggie_sub_total").default(0),
+  saladTotal: integer("salad_total").default(0),
+  dateNeeded: date("date_needed"),
+  timeNeeded: text("time_needed"),
 });
 
 // Roster table
-export const roster = pgTable("roster", {
+export const rosters = pgTable("rosters", {
   id: serial("id").primaryKey(),
   groupId: integer("group_id").notNull(),
   travelerType: text("traveler_type").notNull(), // Student, Chaperone, Director
@@ -127,12 +97,33 @@ export const roster = pgTable("roster", {
   roomOccupancy: text("room_occupancy"), // Single, Double, Triple, Quad
   requestedRoommate: text("requested_roommate"),
   notes: text("notes"),
-  isWaitingList: boolean("is_waiting_list").default(false),
-  isDropped: boolean("is_dropped").default(false),
 });
 
-export const insertRosterSchema = createInsertSchema(roster).omit({
-  id: true,
+// Waiting list table
+export const waitingList = pgTable("waiting_list", {
+  id: serial("id").primaryKey(),
+  groupId: integer("group_id").notNull(),
+  travelerType: text("traveler_type").notNull(), // Student, Chaperone, Director
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  gender: text("gender"), // Male, Female
+  dateOfBirth: date("date_of_birth"),
+  address: text("address"),
+  city: text("city"),
+  state: text("state"),
+  zip: text("zip"),
+  parentEmail: text("parent_email"),
+  parentPhone: text("parent_phone"),
+});
+
+// Drop offs table
+export const dropOffs = pgTable("drop_offs", {
+  id: serial("id").primaryKey(),
+  groupId: integer("group_id").notNull(),
+  travelerType: text("traveler_type").notNull(), // Student, Chaperone, Director
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  reason: text("reason"),
 });
 
 // Rooming list table
@@ -143,97 +134,116 @@ export const roomingList = pgTable("rooming_list", {
   roomType: text("room_type").notNull(), // Students, Chaperone, Director, Admin, Travel Agent, Bus Driver
   roomOccupancy: text("room_occupancy").notNull(), // Single, Double, Triple, Quad
   roomGender: text("room_gender"), // Male, Female
-  occupant1Id: integer("occupant1_id"),
-  occupant2Id: integer("occupant2_id"),
-  occupant3Id: integer("occupant3_id"),
-  occupant4Id: integer("occupant4_id"),
+  occupant1: text("occupant1"),
+  occupant2: text("occupant2"),
+  occupant3: text("occupant3"),
+  occupant4: text("occupant4"),
 });
 
-export const insertRoomingListSchema = createInsertSchema(roomingList).omit({
-  id: true,
-});
-
-// Chaperone Groups table
+// Chaperone groups table
 export const chaperoneGroups = pgTable("chaperone_groups", {
   id: serial("id").primaryKey(),
   groupId: integer("group_id").notNull(),
-  chaperoneId: integer("chaperone_id").notNull(),
+  chaperoneName: text("chaperone_name").notNull(),
   chaperoneRoomNumber: text("chaperone_room_number"),
-  groupSize: integer("group_size").notNull(),
-  student1Id: integer("student1_id"),
-  student2Id: integer("student2_id"),
-  student3Id: integer("student3_id"),
-  student4Id: integer("student4_id"),
-  student5Id: integer("student5_id"),
-  student6Id: integer("student6_id"),
-  student7Id: integer("student7_id"),
-  student8Id: integer("student8_id"),
-  student9Id: integer("student9_id"),
-  student10Id: integer("student10_id"),
+  groupSize: integer("group_size"),
+  student1: text("student1"),
+  student2: text("student2"),
+  student3: text("student3"),
+  student4: text("student4"),
+  student5: text("student5"),
+  student6: text("student6"),
+  student7: text("student7"),
+  student8: text("student8"),
+  student9: text("student9"),
+  student10: text("student10"),
+  student1RoomNumber: text("student1_room_number"),
+  student2RoomNumber: text("student2_room_number"),
+  student3RoomNumber: text("student3_room_number"),
+  student4RoomNumber: text("student4_room_number"),
+  student5RoomNumber: text("student5_room_number"),
+  student6RoomNumber: text("student6_room_number"),
+  student7RoomNumber: text("student7_room_number"),
+  student8RoomNumber: text("student8_room_number"),
+  student9RoomNumber: text("student9_room_number"),
+  student10RoomNumber: text("student10_room_number"),
 });
 
-export const insertChaperoneGroupSchema = createInsertSchema(chaperoneGroups).omit({
-  id: true,
-});
-
-// Disney Experience table
+// My Disney Experience table
 export const disneyExperience = pgTable("disney_experience", {
   id: serial("id").primaryKey(),
-  travelerId: integer("traveler_id").notNull(),
+  groupId: integer("group_id").notNull(),
+  travelerName: text("traveler_name").notNull(),
   login: text("login"),
   password: text("password"),
   avatar: text("avatar"), // Mickey, Minney, Goofy, Pluto
   linked: boolean("linked").default(false),
 });
 
-export const insertDisneyExperienceSchema = createInsertSchema(disneyExperience).omit({
-  id: true,
-});
-
-// Action Items table
-export const actionItems = pgTable("action_items", {
+// Activities / Recent Activity table
+export const activities = pgTable("activities", {
   id: serial("id").primaryKey(),
   groupId: integer("group_id"),
-  title: text("title").notNull(),
-  description: text("description"),
-  dueDate: date("due_date"),
-  priority: text("priority").default("normal"), // urgent, high, normal, low
-  status: text("status").default("pending"), // pending, in-progress, completed
-  createdAt: timestamp("created_at").defaultNow(),
+  type: text("type").notNull(), // e.g., "registration", "payment", "contract", etc.
+  description: text("description").notNull(),
+  timestamp: timestamp("timestamp").defaultNow(),
+  userId: integer("user_id"), // ID of user who performed the action
 });
 
-export const insertActionItemSchema = createInsertSchema(actionItems).omit({
-  id: true,
-  createdAt: true,
+// Create Zod insert schemas
+export const insertUserSchema = createInsertSchema(users).pick({
+  username: true,
+  password: true,
+  email: true,
+  fullName: true,
+  role: true,
 });
 
-// Export types
-export type InsertUser = z.infer<typeof insertUserSchema>;
+export const insertGroupSchema = createInsertSchema(groups);
+export const insertItinerarySchema = createInsertSchema(itineraries);
+export const insertBusSupplierSchema = createInsertSchema(busSuppliers);
+export const insertLunchSchema = createInsertSchema(lunches);
+export const insertRosterSchema = createInsertSchema(rosters);
+export const insertWaitingListSchema = createInsertSchema(waitingList);
+export const insertDropOffSchema = createInsertSchema(dropOffs);
+export const insertRoomingListSchema = createInsertSchema(roomingList);
+export const insertChaperoneGroupSchema = createInsertSchema(chaperoneGroups);
+export const insertDisneyExperienceSchema = createInsertSchema(disneyExperience);
+export const insertActivitySchema = createInsertSchema(activities);
+
+// Define types using the schemas
 export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
 
-export type InsertGroup = z.infer<typeof insertGroupSchema>;
 export type Group = typeof groups.$inferSelect;
+export type InsertGroup = z.infer<typeof insertGroupSchema>;
 
-export type InsertItinerary = z.infer<typeof insertItinerarySchema>;
 export type Itinerary = typeof itineraries.$inferSelect;
+export type InsertItinerary = z.infer<typeof insertItinerarySchema>;
 
-export type InsertBusSupplier = z.infer<typeof insertBusSupplierSchema>;
 export type BusSupplier = typeof busSuppliers.$inferSelect;
+export type InsertBusSupplier = z.infer<typeof insertBusSupplierSchema>;
 
-export type InsertMeal = z.infer<typeof insertMealSchema>;
-export type Meal = typeof meals.$inferSelect;
+export type Lunch = typeof lunches.$inferSelect;
+export type InsertLunch = z.infer<typeof insertLunchSchema>;
 
+export type Roster = typeof rosters.$inferSelect;
 export type InsertRoster = z.infer<typeof insertRosterSchema>;
-export type Roster = typeof roster.$inferSelect;
 
-export type InsertRoomingList = z.infer<typeof insertRoomingListSchema>;
-export type RoomingList = typeof roomingList.$inferSelect;
+export type WaitingListEntry = typeof waitingList.$inferSelect;
+export type InsertWaitingListEntry = z.infer<typeof insertWaitingListSchema>;
 
-export type InsertChaperoneGroup = z.infer<typeof insertChaperoneGroupSchema>;
+export type DropOff = typeof dropOffs.$inferSelect;
+export type InsertDropOff = z.infer<typeof insertDropOffSchema>;
+
+export type RoomingListEntry = typeof roomingList.$inferSelect;
+export type InsertRoomingListEntry = z.infer<typeof insertRoomingListSchema>;
+
 export type ChaperoneGroup = typeof chaperoneGroups.$inferSelect;
+export type InsertChaperoneGroup = z.infer<typeof insertChaperoneGroupSchema>;
 
-export type InsertDisneyExperience = z.infer<typeof insertDisneyExperienceSchema>;
-export type DisneyExperience = typeof disneyExperience.$inferSelect;
+export type DisneyExperienceEntry = typeof disneyExperience.$inferSelect;
+export type InsertDisneyExperienceEntry = z.infer<typeof insertDisneyExperienceSchema>;
 
-export type InsertActionItem = z.infer<typeof insertActionItemSchema>;
-export type ActionItem = typeof actionItems.$inferSelect;
+export type Activity = typeof activities.$inferSelect;
+export type InsertActivity = z.infer<typeof insertActivitySchema>;

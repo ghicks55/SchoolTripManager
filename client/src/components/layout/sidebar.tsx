@@ -1,186 +1,168 @@
-import { cn } from "@/lib/utils";
+import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  LayoutDashboard,
-  Users,
-  Calendar,
-  Bus,
-  Utensils,
-  BedDouble,
-  FileText,
-  Settings,
-  UserCog,
-  LogOut,
+import { 
+  LayoutDashboard, 
+  Users, 
+  Calendar, 
+  Clipboard, 
+  TruckIcon, 
+  BookOpen, 
+  Home, 
+  BarChart, 
+  Settings, 
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 
-interface SidebarItemProps {
+interface SidebarLinkProps {
+  href: string;
   icon: React.ReactNode;
   label: string;
-  href: string;
   isActive: boolean;
+  isCollapsed: boolean;
 }
 
-const SidebarItem = ({ icon, label, href, isActive }: SidebarItemProps) => {
+const SidebarLink = ({ href, icon, label, isActive, isCollapsed }: SidebarLinkProps) => {
   return (
     <Link href={href}>
-      <a
+      <Button
+        variant="ghost"
         className={cn(
-          "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
-          isActive
-            ? "bg-sidebar-primary text-sidebar-primary-foreground"
-            : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          "w-full justify-start gap-2 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+          isActive 
+            ? "bg-primary-50 text-primary-700" 
+            : "text-neutral-600 hover:bg-neutral-100"
         )}
       >
-        <div className="mr-3 text-lg">{icon}</div>
-        {label}
-      </a>
+        <span>{icon}</span>
+        {!isCollapsed && <span>{label}</span>}
+      </Button>
     </Link>
   );
 };
 
-interface SidebarProps {
-  className?: string;
-}
-
-export function Sidebar({ className }: SidebarProps) {
+export function Sidebar() {
   const [location] = useLocation();
-  const { user, logoutMutation } = useAuth();
-
-  const handleLogout = () => {
-    logoutMutation.mutate();
-  };
-
-  const navItems = [
-    {
-      label: "Main",
-      items: [
-        {
-          icon: <LayoutDashboard size={20} />,
-          label: "Dashboard",
-          href: "/",
-        },
-        {
-          icon: <Users size={20} />,
-          label: "Groups",
-          href: "/groups",
-        },
-        {
-          icon: <Calendar size={20} />,
-          label: "Itineraries",
-          href: "/itineraries",
-        },
-        {
-          icon: <Users size={20} />,
-          label: "Roster",
-          href: "/roster",
-        },
-      ],
-    },
-    {
-      label: "Management",
-      items: [
-        {
-          icon: <Bus size={20} />,
-          label: "Bus Suppliers",
-          href: "/bus-suppliers",
-        },
-        {
-          icon: <Utensils size={20} />,
-          label: "Meals",
-          href: "/meals",
-        },
-        {
-          icon: <BedDouble size={20} />,
-          label: "Rooming",
-          href: "/rooming",
-        },
-      ],
-    },
-    {
-      label: "Reports",
-      items: [
-        {
-          icon: <FileText size={20} />,
-          label: "Trip Reports",
-          href: "/reports",
-        },
-      ],
-    },
-    {
-      label: "System",
-      items: [
-        {
-          icon: <Settings size={20} />,
-          label: "Settings",
-          href: "/settings",
-        },
-        {
-          icon: <UserCog size={20} />,
-          label: "User Management",
-          href: "/users",
-        },
-      ],
-    },
-  ];
-
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const { user } = useAuth();
+  
   return (
-    <div className={cn("flex flex-col bg-sidebar-background border-r border-sidebar-border shadow-sm h-full", className)}>
-      <div className="p-4 border-b border-sidebar-border">
-        <h1 className="text-lg font-semibold text-primary">School Trip Manager</h1>
+    <aside 
+      className={cn(
+        "bg-white border-r border-neutral-200 transition-all duration-300 ease-in-out relative z-30 h-screen",
+        isCollapsed ? "w-20" : "w-64"
+      )}
+    >
+      {/* Logo Area */}
+      <div className="flex items-center justify-between h-16 px-4 border-b border-neutral-200">
+        <div className="flex items-center">
+          <span className="h-8 w-8 bg-primary-500 rounded text-white flex items-center justify-center font-bold mr-2">TM</span>
+          {!isCollapsed && <h1 className="text-xl font-heading font-semibold text-primary-700">TripManager</h1>}
+        </div>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="text-neutral-500 hover:text-neutral-700 focus:outline-none h-8 w-8 px-0"
+          onClick={() => setIsCollapsed(!isCollapsed)}
+        >
+          {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+        </Button>
       </div>
       
-      <ScrollArea className="flex-1">
-        <nav className="px-2 py-4">
-          {navItems.map((section, index) => (
-            <div key={index} className="mb-6">
-              <div className="px-3 py-2 text-sm font-medium text-sidebar-foreground/60">{section.label}</div>
-              <div className="space-y-1">
-                {section.items.map((item, itemIndex) => (
-                  <SidebarItem
-                    key={itemIndex}
-                    icon={item.icon}
-                    label={item.label}
-                    href={item.href}
-                    isActive={location === item.href || (item.href !== "/" && location.startsWith(item.href))}
-                  />
-                ))}
-              </div>
-            </div>
-          ))}
-        </nav>
-      </ScrollArea>
-      
-      {user && (
-        <div className="p-4 border-t border-sidebar-border">
-          <div className="flex items-center">
-            <Avatar className="h-8 w-8">
-              <AvatarImage src="" alt={user.fullName} />
-              <AvatarFallback className="bg-primary/10 text-primary">
-                {user.fullName.split(' ').map(name => name[0]).join('').toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div className="ml-3 space-y-0">
-              <p className="text-sm font-medium leading-none">{user.fullName}</p>
-              <p className="text-xs text-sidebar-foreground/60 leading-none mt-1">
-                {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-              </p>
-            </div>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={handleLogout} 
-              className="ml-auto text-sidebar-foreground/60 hover:text-sidebar-foreground"
-              disabled={logoutMutation.isPending}
-            >
-              <LogOut size={18} />
-            </Button>
-          </div>
+      {/* Navigation */}
+      <nav className="mt-2 px-2">
+        <div className="space-y-1">
+          <SidebarLink 
+            href="/" 
+            icon={<LayoutDashboard size={20} />} 
+            label="Dashboard" 
+            isActive={location === "/"} 
+            isCollapsed={isCollapsed} 
+          />
+          
+          <SidebarLink 
+            href="/groups" 
+            icon={<Users size={20} />} 
+            label="School Groups" 
+            isActive={location === "/groups"} 
+            isCollapsed={isCollapsed} 
+          />
+          
+          <SidebarLink 
+            href="/itineraries" 
+            icon={<Calendar size={20} />} 
+            label="Itineraries" 
+            isActive={location === "/itineraries"} 
+            isCollapsed={isCollapsed} 
+          />
+          
+          <SidebarLink 
+            href="/rosters" 
+            icon={<Clipboard size={20} />} 
+            label="Rosters" 
+            isActive={location === "/rosters"} 
+            isCollapsed={isCollapsed} 
+          />
+          
+          <SidebarLink 
+            href="/transportation" 
+            icon={<TruckIcon size={20} />} 
+            label="Transportation" 
+            isActive={location === "/transportation"} 
+            isCollapsed={isCollapsed} 
+          />
+          
+          <SidebarLink 
+            href="/meals" 
+            icon={<BookOpen size={20} />} 
+            label="Meals" 
+            isActive={location === "/meals"} 
+            isCollapsed={isCollapsed} 
+          />
+          
+          <SidebarLink 
+            href="/rooming" 
+            icon={<Home size={20} />} 
+            label="Rooming" 
+            isActive={location === "/rooming"} 
+            isCollapsed={isCollapsed} 
+          />
+          
+          <SidebarLink 
+            href="/reports" 
+            icon={<BarChart size={20} />} 
+            label="Reports" 
+            isActive={location === "/reports"} 
+            isCollapsed={isCollapsed} 
+          />
+          
+          <SidebarLink 
+            href="/settings" 
+            icon={<Settings size={20} />} 
+            label="Settings" 
+            isActive={location === "/settings"} 
+            isCollapsed={isCollapsed} 
+          />
         </div>
-      )}
-    </div>
+      </nav>
+      
+      {/* User Profile */}
+      <div className="absolute bottom-0 w-full border-t border-neutral-200 bg-white p-4">
+        <div className="flex items-center">
+          <div className="h-8 w-8 bg-neutral-300 rounded-full text-neutral-700 flex items-center justify-center">
+            {user?.fullName?.charAt(0) || "U"}
+          </div>
+          {!isCollapsed && (
+            <div className="ml-3 overflow-hidden">
+              <p className="text-sm font-medium text-neutral-800 truncate">{user?.fullName}</p>
+              <p className="text-xs text-neutral-500 capitalize">{user?.role}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </aside>
   );
 }
