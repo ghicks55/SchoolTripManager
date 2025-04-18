@@ -1,0 +1,113 @@
+I'll create a comprehensive prompt for an AI coding agent to develop a business application for a travel agency that manages school group trips.
+
+# AI Coding Agent Prompt: School Group Trip Management Application
+
+## Project Overview
+Develop a web application for a travel agency to efficiently manage school group trips. The application will track comprehensive trip data, participant information, logistics, and financial details as specified in the requirements document.
+
+## Core Requirements
+
+### Authentication & Access
+- Implement Google Authentication for secure login
+- Create role-based access controls (Admin, Trip Director, Travel Agent, Chaperone)
+- Enable data sharing with controlled permissions for different stakeholders
+
+### Data Models
+Based on the provided document, implement the following data structures:
+
+1. **Groups**
+   - School name, group name, location, travel dates
+   - Registration details, GMR number, director information
+   - Transportation details (bus supplier, number of buses, charter number)
+   - Contract status, insurance status, payment tracking
+
+2. **Group Itineraries**
+   - Calendar view of all trips
+   - Day-by-day activity tracking
+   - Visual timeline representation
+
+3. **Bus Suppliers**
+   - Company details and contact information
+   - Contract storage and management
+   - Bus allocation and tracking
+
+4. **Lunch Management**
+   - Meal type counts and requirements
+   - Scheduling (date/time)
+   - Special dietary needs
+
+5. **Participant Roster**
+   - Comprehensive traveler information
+   - Categorization (student, chaperone, director)
+   - Preferences (magic band color, t-shirt size, meal options)
+   - Insurance selection and room assignments
+
+6. **Waiting List**
+   - Potential traveler information
+   - Automated promotion when spots become available
+
+7. **Drop-offs Tracking**
+   - Record of participants who cancel
+   - Reason for cancellation (optional)
+   - Impact on rooming and grouping
+
+8. **Rooming Management**
+   - Room assignment and categorization
+   - Occupancy tracking
+   - Gender-based grouping
+
+9. **Chaperone Groups**
+   - Assignment of students to chaperones
+   - Room number cross-referencing
+
+10. **Disney Experience Integration**
+    - Credential management
+    - Avatar selection
+    - Link status tracking
+
+### Technical Requirements
+- Develop as a responsive web application with mobile compatibility
+- Implement a modern tech stack (recommend: React/Next.js, Node.js, MongoDB/Firebase)
+- Use RESTful API architecture
+- Deploy on cloud infrastructure (AWS, GCP, or Azure)
+- Implement secure data handling practices (encryption, access controls)
+- Create comprehensive backup and recovery systems
+
+### User Experience Features
+- Interactive dashboard with key metrics and upcoming trips
+- Searchable and filterable data tables
+- Export functionality (PDF, Excel, CSV)
+- Automated email notifications for key events (registration opening, payment deadlines)
+- Document upload and storage (contracts, release forms)
+
+### Reporting Capabilities
+- Financial summaries and projections
+- Participant demographics
+- Trip statistics and comparisons
+- Custom report builder
+
+## Implementation Guidelines
+1. Begin with data model design and database schema
+2. Implement authentication and basic CRUD operations
+3. Develop core screens for each major function
+4. Add reporting and dashboard features
+5. Implement export and integration capabilities
+6. Build notification system
+7. Complete UI polishing and responsive design
+
+## Deliverables
+- Fully functional web application with described features
+- Administrator documentation
+- User guides for different permission levels
+- API documentation for potential future integrations
+- Deployment scripts and configuration files
+- Database backup and restoration procedures
+
+## Priorities
+1. Data security and privacy compliance
+2. Intuitive user experience requiring minimal training
+3. Comprehensive data tracking with minimal manual entry
+4. Reliability and performance under concurrent use
+5. Extensibility for future feature additions
+
+The application should streamline the complex process of managing group travel while ensuring all stakeholders have appropriate access to the information they need, ultimately providing a better experience for the travel agency, schools, and trip participants.
