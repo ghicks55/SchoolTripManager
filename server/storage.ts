@@ -98,11 +98,11 @@ export interface IStorage {
   deleteDocument(id: number): Promise<boolean>;
   
   // Session store
-  sessionStore: session.SessionStore;
+  sessionStore: any;
 }
 
 export class DatabaseStorage implements IStorage {
-  sessionStore: session.SessionStore;
+  sessionStore: any;
   
   constructor() {
     this.sessionStore = new PostgresSessionStore({ 

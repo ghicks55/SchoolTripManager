@@ -13,6 +13,7 @@ import MealsPage from "@/pages/meals-page";
 import RoomingPage from "@/pages/rooming-page";
 import ReportsPage from "@/pages/reports-page";
 import SettingsPage from "@/pages/settings-page";
+import DocumentsPage from "@/pages/documents-page";
 import AuthPage from "@/pages/auth-page";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ProtectedRoute } from "@/lib/protected-route";
