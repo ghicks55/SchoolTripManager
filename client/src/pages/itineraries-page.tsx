@@ -23,12 +23,12 @@ export default function ItinerariesPage() {
   const { data: itineraries = [], isLoading: isLoadingItineraries } = useQuery<Itinerary[]>({
     queryKey: ['/api/groups', selectedGroupId, 'itineraries'],
     queryFn: async () => {
-      if (!selectedGroupId) return [];
+      if (!selectedGroupId || selectedGroupId === 'none') return [];
       const res = await fetch(`/api/groups/${selectedGroupId}/itineraries`);
       if (!res.ok) throw new Error('Failed to fetch itineraries');
       return res.json();
     },
-    enabled: !!selectedGroupId,
+    enabled: !!selectedGroupId && selectedGroupId !== 'none',
   });
   
   // Get selected group details
@@ -49,11 +49,11 @@ export default function ItinerariesPage() {
               <p className="text-neutral-600">Manage day-by-day activities for your trips</p>
             </div>
             <div className="mt-4 sm:mt-0 flex flex-wrap gap-2">
-              <Button disabled={!selectedGroupId} className="bg-primary-600 hover:bg-primary-700">
+              <Button disabled={!selectedGroupId || selectedGroupId === 'none'} className="bg-primary-600 hover:bg-primary-700">
                 <Plus className="h-5 w-5 mr-2" />
                 Add Activity
               </Button>
-              <Button disabled={!selectedGroupId} variant="outline">
+              <Button disabled={!selectedGroupId || selectedGroupId === 'none'} variant="outline">
                 <FileText className="h-5 w-5 mr-2" />
                 Export Itinerary
               </Button>
@@ -73,7 +73,7 @@ export default function ItinerariesPage() {
                       <SelectValue placeholder="Select a school group" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Select a group</SelectItem>
+                      <SelectItem value="none">Select a group</SelectItem>
                       {groups.map(group => (
                         <SelectItem key={group.id} value={group.id.toString()}>
                           {group.schoolName} - {group.groupName} ({format(new Date(group.startDate), "MMM d, yyyy")})
@@ -87,7 +87,7 @@ export default function ItinerariesPage() {
           </Card>
           
           {/* Itinerary Contents */}
-          {selectedGroupId ? (
+          {selectedGroupId && selectedGroupId !== 'none' ? (
             <div>
               {/* Group Trip Info */}
               {selectedGroup && (

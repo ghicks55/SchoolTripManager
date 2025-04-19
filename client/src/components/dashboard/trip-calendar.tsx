@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday, getDay } from "date-fns";
@@ -118,14 +118,14 @@ export function TripCalendar({ className }: TripCalendarProps) {
           
           {/* Calendar Days */}
           {weeks.map((week, weekIndex) => (
-            <>
+            <React.Fragment key={`week-${weekIndex}`}>
               {week.map((day, dayIndex) => {
                 const trips = day.date ? getTripsForDate(day.date) : [];
                 
                 return (
                   <div 
                     key={`${weekIndex}-${dayIndex}`} 
-                    className={`border ${day.isCurrentMonth ? 'border-neutral-200' : 'border-neutral-100'} rounded-md min-h-[80px] p-1 ${isToday(day.date) ? 'bg-neutral-50' : ''}`}
+                    className={`border ${day.isCurrentMonth ? 'border-neutral-200' : 'border-neutral-100'} rounded-md min-h-[80px] p-1 ${day.date && isToday(day.date) ? 'bg-neutral-50' : ''}`}
                   >
                     {day.date && (
                       <>
@@ -155,7 +155,7 @@ export function TripCalendar({ className }: TripCalendarProps) {
                   </div>
                 );
               })}
-            </>
+            </React.Fragment>
           ))}
         </div>
       </CardContent>
