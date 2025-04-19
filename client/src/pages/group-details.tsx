@@ -30,7 +30,12 @@ import {
   FileText, 
   DollarSign, 
   Check, 
-  X 
+  X,
+  Download,
+  Upload,
+  File,
+  Trash2,
+  Loader2
 } from "lucide-react";
 
 export default function GroupDetails() {
@@ -51,6 +56,11 @@ export default function GroupDetails() {
   const { data: roster, isLoading: isLoadingRoster } = useQuery<Roster[]>({
     queryKey: [`/api/groups/${id}/roster`],
     enabled: activeTab === "roster",
+  });
+  
+  const { data: documents, isLoading: isLoadingDocuments } = useQuery<Document[]>({
+    queryKey: [`/api/groups/${id}/documents`],
+    enabled: activeTab === "documents",
   });
 
   const toggleMobileSidebar = () => {
@@ -76,6 +86,50 @@ export default function GroupDetails() {
         {statusStyle.text}
       </Badge>
     );
+  };
+  
+  const getDocumentTypeLabel = (type: string) => {
+    const documentTypeMap: Record<string, string> = {
+      waiver: "Waiver Form",
+      itinerary: "Itinerary",
+      invoice: "Invoice",
+      contract: "Contract",
+      guide: "Travel Guide",
+      insurance: "Insurance Information",
+      roster: "Roster",
+      other: "Other"
+    };
+    
+    return documentTypeMap[type] || type;
+  };
+  
+  const getFileIcon = (fileType: string) => {
+    if (fileType.includes('pdf')) return <FileText className="h-5 w-5 text-red-500" />;
+    if (fileType.includes('word') || fileType.includes('document')) return <FileText className="h-5 w-5 text-blue-500" />;
+    if (fileType.includes('sheet') || fileType.includes('excel')) return <FileText className="h-5 w-5 text-green-500" />;
+    if (fileType.includes('image')) return <FileText className="h-5 w-5 text-purple-500" />;
+    return <File className="h-5 w-5" />;
+  };
+  
+  const formatBytes = (bytes: number, decimals = 2) => {
+    if (bytes === 0) return '0 Bytes';
+    
+    const k = 1024;
+    const dm = decimals < 0 ? 0 : decimals;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+  };
+  
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric'
+    });
   };
 
   return (
