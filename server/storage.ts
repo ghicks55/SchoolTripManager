@@ -608,6 +608,94 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return activity;
   }
+  
+  // Document methods
+  async getDocumentsByGroupId(groupId: number): Promise<Document[]> {
+    return await db
+      .select()
+      .from(documents)
+      .where(eq(documents.groupId, groupId))
+      .orderBy(desc(documents.createdAt));
+  }
+  
+  async getDocument(id: number): Promise<Document | undefined> {
+    const [document] = await db
+      .select()
+      .from(documents)
+      .where(eq(documents.id, id));
+    return document;
+  }
+  
+  async createDocument(insertDocument: InsertDocument): Promise<Document> {
+    const [document] = await db
+      .insert(documents)
+      .values(insertDocument)
+      .returning();
+    
+    // Create an activity record
+    await this.createActivity({
+      groupId: document.groupId,
+      type: 'document',
+      description: `New document uploaded: ${document.fileName} (${document.documentType})`,
+      timestamp: new Date(),
+      userId: document.uploadedBy
+    });
+    
+    return document;
+  }
+  
+  async updateDocument(id: number, documentUpdate: Partial<Document>): Promise<Document | undefined> {
+    if ('updatedAt' in documentUpdate === false) {
+      documentUpdate.updatedAt = new Date();
+    }
+    
+    const [updatedDocument] = await db
+      .update(documents)
+      .set(documentUpdate)
+      .where(eq(documents.id, id))
+      .returning();
+    
+    if (updatedDocument) {
+      // Log activity
+      await this.createActivity({
+        groupId: updatedDocument.groupId,
+        type: 'document_update',
+        description: `Document updated: ${updatedDocument.fileName}`,
+        timestamp: new Date(),
+        userId: updatedDocument.uploadedBy
+      });
+    }
+    
+    return updatedDocument;
+  }
+  
+  async deleteDocument(id: number): Promise<boolean> {
+    // First get the document to reference in activity
+    const [document] = await db
+      .select()
+      .from(documents)
+      .where(eq(documents.id, id));
+    
+    if (!document) return false;
+    
+    const [deletedDocument] = await db
+      .delete(documents)
+      .where(eq(documents.id, id))
+      .returning();
+    
+    if (deletedDocument) {
+      // Log activity
+      await this.createActivity({
+        groupId: document.groupId,
+        type: 'document_delete',
+        description: `Document deleted: ${document.fileName} (${document.documentType})`,
+        timestamp: new Date(),
+        userId: document.uploadedBy
+      });
+    }
+    
+    return !!deletedDocument;
+  }
 }
 
 export const storage = new DatabaseStorage();

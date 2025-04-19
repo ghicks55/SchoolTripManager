@@ -2,13 +2,73 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth } from "./auth";
-import { insertGroupSchema, insertRosterSchema, insertBusSupplierSchema, insertItinerarySchema, insertRoomingListSchema, insertChaperoneGroupSchema } from "@shared/schema";
+import { insertGroupSchema, insertRosterSchema, insertBusSupplierSchema, insertItinerarySchema, insertRoomingListSchema, insertChaperoneGroupSchema, insertDocumentSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up authentication routes
   setupAuth(app);
+  
+  // Configure multer for file uploads
+  const uploadsDir = path.join(process.cwd(), 'uploads');
+  const documentsDir = path.join(uploadsDir, 'documents');
+  
+  // Ensure uploads directory exists
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir);
+  }
+  if (!fs.existsSync(documentsDir)) {
+    fs.mkdirSync(documentsDir);
+  }
+  
+  // Configure multer storage
+  const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, documentsDir);
+    },
+    filename: (req, file, cb) => {
+      // Create a unique filename
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const ext = path.extname(file.originalname);
+      cb(null, file.fieldname + '-' + uniqueSuffix + ext);
+    }
+  });
+  
+  const upload = multer({ 
+    storage,
+    limits: {
+      fileSize: 10 * 1024 * 1024, // Limit file size to 10MB
+    },
+    fileFilter: (req, file, cb) => {
+      // Accept common document types
+      const allowedTypes = [
+        // PDF
+        'application/pdf',
+        // Word documents
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        // Excel
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        // Text and markdown
+        'text/plain',
+        'text/markdown',
+        // Images
+        'image/jpeg',
+        'image/png'
+      ];
+      
+      if (allowedTypes.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error('File type not allowed. Supported formats: PDF, Word, Excel, Text, Markdown, JPEG, PNG'));
+      }
+    }
+  });
 
   // API Routes
   // Groups
@@ -281,6 +341,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(activities);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch group activities" });
+    }
+  });
+
+  // Documents
+  app.get("/api/groups/:groupId/documents", async (req: Request, res: Response) => {
+    try {
+      const groupId = parseInt(req.params.groupId);
+      const documents = await storage.getDocumentsByGroupId(groupId);
+      res.json(documents);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch documents" });
+    }
+  });
+
+  app.get("/api/documents/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const document = await storage.getDocument(id);
+      
+      if (!document) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+      
+      res.json(document);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch document" });
+    }
+  });
+
+  app.post("/api/documents", async (req: Request, res: Response) => {
+    try {
+      const validatedData = insertDocumentSchema.parse(req.body);
+      const document = await storage.createDocument(validatedData);
+      res.status(201).json(document);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      res.status(500).json({ message: "Failed to create document" });
+    }
+  });
+
+  app.put("/api/documents/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertDocumentSchema.partial().parse(req.body);
+      
+      const updatedDocument = await storage.updateDocument(id, validatedData);
+      
+      if (!updatedDocument) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+      
+      res.json(updatedDocument);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const validationError = fromZodError(error);
+        return res.status(400).json({ message: validationError.message });
+      }
+      res.status(500).json({ message: "Failed to update document" });
+    }
+  });
+
+  app.delete("/api/documents/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteDocument(id);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+      
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete document" });
     }
   });
 
