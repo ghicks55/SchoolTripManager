@@ -30,12 +30,12 @@ export default function MealsPage() {
   const { data: lunches = [], isLoading: isLoadingLunches } = useQuery<Lunch[]>({
     queryKey: ['/api/groups', selectedGroupId, 'lunches'],
     queryFn: async () => {
-      if (!selectedGroupId) return [];
+      if (!selectedGroupId || selectedGroupId === 'none') return [];
       const res = await fetch(`/api/groups/${selectedGroupId}/lunches`);
       if (!res.ok) throw new Error('Failed to fetch lunches');
       return res.json();
     },
-    enabled: !!selectedGroupId,
+    enabled: !!selectedGroupId && selectedGroupId !== 'none',
   });
   
   // Get selected group details
@@ -76,7 +76,7 @@ export default function MealsPage() {
             <div className="mt-4 sm:mt-0 flex flex-wrap gap-2">
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button disabled={!selectedGroupId} className="bg-primary-600 hover:bg-primary-700">
+                  <Button disabled={!selectedGroupId || selectedGroupId === 'none'} className="bg-primary-600 hover:bg-primary-700">
                     <Plus className="h-5 w-5 mr-2" />
                     Update Meal Counts
                   </Button>
@@ -170,7 +170,7 @@ export default function MealsPage() {
                 </DialogContent>
               </Dialog>
               
-              <Button disabled={!selectedGroupId} variant="outline">
+              <Button disabled={!selectedGroupId || selectedGroupId === 'none'} variant="outline">
                 <BookOpen className="h-5 w-5 mr-2" />
                 Export Meal Plan
               </Button>
@@ -190,7 +190,7 @@ export default function MealsPage() {
                       <SelectValue placeholder="Select a school group" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Select a group</SelectItem>
+                      <SelectItem value="none">Select a group</SelectItem>
                       {groups.map(group => (
                         <SelectItem key={group.id} value={group.id.toString()}>
                           {group.schoolName} - {group.groupName} ({format(new Date(group.startDate), "MMM d, yyyy")})
@@ -204,7 +204,7 @@ export default function MealsPage() {
           </Card>
           
           {/* Meal Contents */}
-          {selectedGroupId ? (
+          {selectedGroupId && selectedGroupId !== 'none' ? (
             <div>
               {/* Group Trip Info */}
               {selectedGroup && (
