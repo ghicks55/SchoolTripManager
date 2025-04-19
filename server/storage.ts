@@ -10,6 +10,7 @@ import { roomingList, type RoomingListEntry, type InsertRoomingListEntry } from 
 import { chaperoneGroups, type ChaperoneGroup, type InsertChaperoneGroup } from "@shared/schema";
 import { disneyExperience, type DisneyExperienceEntry, type InsertDisneyExperienceEntry } from "@shared/schema";
 import { activities, type Activity, type InsertActivity } from "@shared/schema";
+import { documents, type Document, type InsertDocument } from "@shared/schema";
 import session from "express-session";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
@@ -88,6 +89,13 @@ export interface IStorage {
   getAllActivities(limit?: number): Promise<Activity[]>;
   getActivitiesByGroupId(groupId: number, limit?: number): Promise<Activity[]>;
   createActivity(activity: InsertActivity): Promise<Activity>;
+  
+  // Documents
+  getDocumentsByGroupId(groupId: number): Promise<Document[]>;
+  getDocument(id: number): Promise<Document | undefined>;
+  createDocument(document: InsertDocument): Promise<Document>;
+  updateDocument(id: number, document: Partial<Document>): Promise<Document | undefined>;
+  deleteDocument(id: number): Promise<boolean>;
   
   // Session store
   sessionStore: session.SessionStore;
