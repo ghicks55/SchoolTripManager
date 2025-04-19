@@ -38,12 +38,12 @@ export default function RoomingPage() {
   const { data: roomingList = [], isLoading: isLoadingRooming } = useQuery<RoomingListEntry[]>({
     queryKey: ['/api/groups', selectedGroupId, 'rooming'],
     queryFn: async () => {
-      if (!selectedGroupId) return [];
+      if (!selectedGroupId || selectedGroupId === 'none') return [];
       const res = await fetch(`/api/groups/${selectedGroupId}/rooming`);
       if (!res.ok) throw new Error('Failed to fetch rooming list');
       return res.json();
     },
-    enabled: !!selectedGroupId,
+    enabled: !!selectedGroupId && selectedGroupId !== 'none',
   });
   
   // Filter rooming list based on search and room type
@@ -85,7 +85,7 @@ export default function RoomingPage() {
             <div className="mt-4 sm:mt-0 flex flex-wrap gap-2">
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button disabled={!selectedGroupId} className="bg-primary-600 hover:bg-primary-700">
+                  <Button disabled={!selectedGroupId || selectedGroupId === 'none'} className="bg-primary-600 hover:bg-primary-700">
                     <Plus className="h-5 w-5 mr-2" />
                     Add Room
                   </Button>
@@ -202,7 +202,7 @@ export default function RoomingPage() {
                 </DialogContent>
               </Dialog>
               
-              <Button disabled={!selectedGroupId} variant="outline">
+              <Button disabled={!selectedGroupId || selectedGroupId === 'none'} variant="outline">
                 <Users className="h-5 w-5 mr-2" />
                 Create Chaperone Groups
               </Button>
@@ -236,7 +236,7 @@ export default function RoomingPage() {
           </Card>
           
           {/* Rooming Contents */}
-          {selectedGroupId ? (
+          {selectedGroupId && selectedGroupId !== 'none' ? (
             <div>
               {/* Group Trip Info */}
               {selectedGroup && (
