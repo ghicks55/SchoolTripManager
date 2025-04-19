@@ -31,36 +31,36 @@ export default function RostersPage() {
   const { data: roster = [], isLoading: isLoadingRoster } = useQuery<Roster[]>({
     queryKey: ['/api/groups', selectedGroupId, 'rosters'],
     queryFn: async () => {
-      if (!selectedGroupId) return [];
+      if (!selectedGroupId || selectedGroupId === 'none') return [];
       const res = await fetch(`/api/groups/${selectedGroupId}/rosters`);
       if (!res.ok) throw new Error('Failed to fetch roster');
       return res.json();
     },
-    enabled: !!selectedGroupId,
+    enabled: !!selectedGroupId && selectedGroupId !== 'none',
   });
   
   // Fetch waiting list for selected group
   const { data: waitingList = [], isLoading: isLoadingWaitingList } = useQuery<WaitingListEntry[]>({
     queryKey: ['/api/groups', selectedGroupId, 'waiting-list'],
     queryFn: async () => {
-      if (!selectedGroupId) return [];
+      if (!selectedGroupId || selectedGroupId === 'none') return [];
       const res = await fetch(`/api/groups/${selectedGroupId}/waiting-list`);
       if (!res.ok) throw new Error('Failed to fetch waiting list');
       return res.json();
     },
-    enabled: !!selectedGroupId,
+    enabled: !!selectedGroupId && selectedGroupId !== 'none',
   });
   
   // Fetch drop-offs for selected group
   const { data: dropOffs = [], isLoading: isLoadingDropOffs } = useQuery<DropOff[]>({
     queryKey: ['/api/groups', selectedGroupId, 'drop-offs'],
     queryFn: async () => {
-      if (!selectedGroupId) return [];
+      if (!selectedGroupId || selectedGroupId === 'none') return [];
       const res = await fetch(`/api/groups/${selectedGroupId}/drop-offs`);
       if (!res.ok) throw new Error('Failed to fetch drop-offs');
       return res.json();
     },
-    enabled: !!selectedGroupId,
+    enabled: !!selectedGroupId && selectedGroupId !== 'none',
   });
   
   // Filter roster based on search and traveler type
@@ -97,11 +97,11 @@ export default function RostersPage() {
               <p className="text-neutral-600">Manage travelers for your school trips</p>
             </div>
             <div className="mt-4 sm:mt-0 flex flex-wrap gap-2">
-              <Button disabled={!selectedGroupId} className="bg-primary-600 hover:bg-primary-700">
+              <Button disabled={!selectedGroupId || selectedGroupId === 'none'} className="bg-primary-600 hover:bg-primary-700">
                 <Plus className="h-5 w-5 mr-2" />
                 Add Traveler
               </Button>
-              <Button disabled={!selectedGroupId} variant="outline">
+              <Button disabled={!selectedGroupId || selectedGroupId === 'none'} variant="outline">
                 <Download className="h-5 w-5 mr-2" />
                 Export Roster
               </Button>
@@ -121,7 +121,7 @@ export default function RostersPage() {
                       <SelectValue placeholder="Select a school group" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Select a group</SelectItem>
+                      <SelectItem value="none">Select a group</SelectItem>
                       {groups.map(group => (
                         <SelectItem key={group.id} value={group.id.toString()}>
                           {group.schoolName} - {group.groupName} ({format(new Date(group.startDate), "MMM d, yyyy")})
@@ -135,7 +135,7 @@ export default function RostersPage() {
           </Card>
           
           {/* Roster Contents */}
-          {selectedGroupId ? (
+          {selectedGroupId && selectedGroupId !== 'none' ? (
             <div>
               {/* Group Trip Info */}
               {selectedGroup && (

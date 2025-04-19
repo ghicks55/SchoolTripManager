@@ -222,7 +222,7 @@ export default function RoomingPage() {
                       <SelectValue placeholder="Select a school group" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Select a group</SelectItem>
+                      <SelectItem value="none">Select a group</SelectItem>
                       {groups.map(group => (
                         <SelectItem key={group.id} value={group.id.toString()}>
                           {group.schoolName} - {group.groupName} ({format(new Date(group.startDate), "MMM d, yyyy")})
