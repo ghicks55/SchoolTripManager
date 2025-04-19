@@ -473,6 +473,99 @@ export default function GroupDetails() {
                   </CardContent>
                 </Card>
               </TabsContent>
+              
+              <TabsContent value="documents">
+                <Card>
+                  <CardHeader>
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <CardTitle>Group Documents</CardTitle>
+                        <CardDescription>Important files for this trip</CardDescription>
+                      </div>
+                      <Button onClick={() => navigate(`/groups/${id}/documents`)}>
+                        <Upload className="mr-2 h-4 w-4" />
+                        Upload Document
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {isLoadingDocuments ? (
+                      <div className="space-y-4">
+                        <Skeleton className="h-8 w-full" />
+                        <Skeleton className="h-32 w-full" />
+                      </div>
+                    ) : documents && documents.length > 0 ? (
+                      <div className="overflow-x-auto">
+                        <table className="w-full border-collapse">
+                          <thead>
+                            <tr className="border-b border-border">
+                              <th className="text-left py-3 px-4 font-medium text-muted-foreground text-sm">File</th>
+                              <th className="text-left py-3 px-4 font-medium text-muted-foreground text-sm">Type</th>
+                              <th className="text-left py-3 px-4 font-medium text-muted-foreground text-sm">Description</th>
+                              <th className="text-left py-3 px-4 font-medium text-muted-foreground text-sm">Uploaded</th>
+                              <th className="text-left py-3 px-4 font-medium text-muted-foreground text-sm">Size</th>
+                              <th className="text-right py-3 px-4 font-medium text-muted-foreground text-sm">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {documents.map((doc) => (
+                              <tr key={doc.id} className="border-b border-border hover:bg-muted/50">
+                                <td className="py-3 px-4">
+                                  <div className="flex items-center">
+                                    {getFileIcon(doc.fileType)}
+                                    <span className="ml-2 truncate max-w-[200px]">{doc.fileName}</span>
+                                  </div>
+                                </td>
+                                <td className="py-3 px-4">
+                                  <Badge variant="outline">
+                                    {getDocumentTypeLabel(doc.documentType)}
+                                  </Badge>
+                                </td>
+                                <td className="py-3 px-4 max-w-[200px] truncate">
+                                  {doc.description || "-"}
+                                </td>
+                                <td className="py-3 px-4">
+                                  {doc.createdAt ? formatDate(doc.createdAt.toString()) : "-"}
+                                </td>
+                                <td className="py-3 px-4">
+                                  {formatBytes(doc.fileSize)}
+                                </td>
+                                <td className="py-3 px-4 text-right">
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm"
+                                    asChild
+                                  >
+                                    <a href={doc.filePath} target="_blank" rel="noopener noreferrer" download>
+                                      <Download className="mr-2 h-4 w-4" />
+                                      Download
+                                    </a>
+                                  </Button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <FileText className="mx-auto h-12 w-12 text-muted-foreground opacity-50" />
+                        <h3 className="mt-4 text-lg font-semibold">No documents</h3>
+                        <p className="mt-2 text-sm text-muted-foreground">
+                          This group doesn't have any documents yet.
+                        </p>
+                        <Button 
+                          variant="outline" 
+                          className="mt-4"
+                          onClick={() => navigate(`/groups/${id}/documents`)}
+                        >
+                          Upload your first document
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
             </Tabs>
           ) : null}
         </main>
