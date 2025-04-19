@@ -1,6 +1,6 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { storage as dbStorage } from "./storage";
 import { setupAuth } from "./auth";
 import { insertGroupSchema, insertRosterSchema, insertBusSupplierSchema, insertItinerarySchema, insertRoomingListSchema, insertChaperoneGroupSchema, insertDocumentSchema } from "@shared/schema";
 import { ZodError } from "zod";
@@ -26,7 +26,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }
   
   // Configure multer storage
-  const storage = multer.diskStorage({
+  const multerStorage = multer.diskStorage({
     destination: (req, file, cb) => {
       cb(null, documentsDir);
     },
@@ -39,7 +39,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   const upload = multer({ 
-    storage,
+    storage: multerStorage,
     limits: {
       fileSize: 10 * 1024 * 1024, // Limit file size to 10MB
     },
@@ -74,7 +74,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Groups
   app.get("/api/groups", async (req: Request, res: Response) => {
     try {
-      const groups = await storage.getAllGroups();
+      const groups = await dbStorage.getAllGroups();
       res.json(groups);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch groups" });
@@ -84,7 +84,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/groups/:id", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
-      const group = await storage.getGroup(id);
+      const group = await dbStorage.getGroup(id);
       
       if (!group) {
         return res.status(404).json({ message: "Group not found" });
@@ -99,7 +99,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/groups", async (req: Request, res: Response) => {
     try {
       const validatedData = insertGroupSchema.parse(req.body);
-      const group = await storage.createGroup(validatedData);
+      const group = await dbStorage.createGroup(validatedData);
       res.status(201).json(group);
     } catch (error) {
       if (error instanceof ZodError) {
@@ -115,7 +115,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const validatedData = insertGroupSchema.partial().parse(req.body);
       
-      const updatedGroup = await storage.updateGroup(id, validatedData);
+      const updatedGroup = await dbStorage.updateGroup(id, validatedData);
       
       if (!updatedGroup) {
         return res.status(404).json({ message: "Group not found" });
@@ -134,7 +134,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/groups/:id", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
-      const success = await storage.deleteGroup(id);
+      const success = await dbStorage.deleteGroup(id);
       
       if (!success) {
         return res.status(404).json({ message: "Group not found" });
@@ -150,7 +150,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/groups/:groupId/itineraries", async (req: Request, res: Response) => {
     try {
       const groupId = parseInt(req.params.groupId);
-      const itineraries = await storage.getItinerariesByGroupId(groupId);
+      const itineraries = await dbStorage.getItinerariesByGroupId(groupId);
       res.json(itineraries);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch itineraries" });
@@ -160,7 +160,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/itineraries", async (req: Request, res: Response) => {
     try {
       const validatedData = insertItinerarySchema.parse(req.body);
-      const itinerary = await storage.createItinerary(validatedData);
+      const itinerary = await dbStorage.createItinerary(validatedData);
       res.status(201).json(itinerary);
     } catch (error) {
       if (error instanceof ZodError) {
@@ -174,7 +174,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Bus Suppliers
   app.get("/api/bus-suppliers", async (req: Request, res: Response) => {
     try {
-      const busSuppliers = await storage.getAllBusSuppliers();
+      const busSuppliers = await dbStorage.getAllBusSuppliers();
       res.json(busSuppliers);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch bus suppliers" });
@@ -184,7 +184,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/bus-suppliers", async (req: Request, res: Response) => {
     try {
       const validatedData = insertBusSupplierSchema.parse(req.body);
-      const busSupplier = await storage.createBusSupplier(validatedData);
+      const busSupplier = await dbStorage.createBusSupplier(validatedData);
       res.status(201).json(busSupplier);
     } catch (error) {
       if (error instanceof ZodError) {
@@ -199,7 +199,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/groups/:groupId/rosters", async (req: Request, res: Response) => {
     try {
       const groupId = parseInt(req.params.groupId);
-      const rosters = await storage.getRostersByGroupId(groupId);
+      const rosters = await dbStorage.getRostersByGroupId(groupId);
       res.json(rosters);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch rosters" });
@@ -209,7 +209,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/rosters", async (req: Request, res: Response) => {
     try {
       const validatedData = insertRosterSchema.parse(req.body);
-      const roster = await storage.createRoster(validatedData);
+      const roster = await dbStorage.createRoster(validatedData);
       res.status(201).json(roster);
     } catch (error) {
       if (error instanceof ZodError) {
@@ -223,7 +223,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/rosters/:id", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
-      const success = await storage.deleteRoster(id);
+      const success = await dbStorage.deleteRoster(id);
       
       if (!success) {
         return res.status(404).json({ message: "Roster entry not found" });
@@ -239,7 +239,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/groups/:groupId/waiting-list", async (req: Request, res: Response) => {
     try {
       const groupId = parseInt(req.params.groupId);
-      const waitingList = await storage.getWaitingListByGroupId(groupId);
+      const waitingList = await dbStorage.getWaitingListByGroupId(groupId);
       res.json(waitingList);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch waiting list" });
@@ -249,7 +249,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/waiting-list/:id/promote", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
-      const roster = await storage.moveFromWaitingListToRoster(id);
+      const roster = await dbStorage.moveFromWaitingListToRoster(id);
       
       if (!roster) {
         return res.status(404).json({ message: "Waiting list entry not found" });
@@ -265,7 +265,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/groups/:groupId/drop-offs", async (req: Request, res: Response) => {
     try {
       const groupId = parseInt(req.params.groupId);
-      const dropOffs = await storage.getDropOffsByGroupId(groupId);
+      const dropOffs = await dbStorage.getDropOffsByGroupId(groupId);
       res.json(dropOffs);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch drop offs" });
@@ -276,7 +276,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/groups/:groupId/rooming", async (req: Request, res: Response) => {
     try {
       const groupId = parseInt(req.params.groupId);
-      const roomingList = await storage.getRoomingListByGroupId(groupId);
+      const roomingList = await dbStorage.getRoomingListByGroupId(groupId);
       res.json(roomingList);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch rooming list" });
@@ -286,7 +286,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/rooming", async (req: Request, res: Response) => {
     try {
       const validatedData = insertRoomingListSchema.parse(req.body);
-      const roomingEntry = await storage.createRoomingListEntry(validatedData);
+      const roomingEntry = await dbStorage.createRoomingListEntry(validatedData);
       res.status(201).json(roomingEntry);
     } catch (error) {
       if (error instanceof ZodError) {
@@ -301,7 +301,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/groups/:groupId/chaperone-groups", async (req: Request, res: Response) => {
     try {
       const groupId = parseInt(req.params.groupId);
-      const chaperoneGroups = await storage.getChaperoneGroupsByGroupId(groupId);
+      const chaperoneGroups = await dbStorage.getChaperoneGroupsByGroupId(groupId);
       res.json(chaperoneGroups);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch chaperone groups" });
@@ -311,7 +311,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/chaperone-groups", async (req: Request, res: Response) => {
     try {
       const validatedData = insertChaperoneGroupSchema.parse(req.body);
-      const chaperoneGroup = await storage.createChaperoneGroup(validatedData);
+      const chaperoneGroup = await dbStorage.createChaperoneGroup(validatedData);
       res.status(201).json(chaperoneGroup);
     } catch (error) {
       if (error instanceof ZodError) {
@@ -326,7 +326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/activities", async (req: Request, res: Response) => {
     try {
       const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
-      const activities = await storage.getAllActivities(limit);
+      const activities = await dbStorage.getAllActivities(limit);
       res.json(activities);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch activities" });
@@ -337,7 +337,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const groupId = parseInt(req.params.groupId);
       const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
-      const activities = await storage.getActivitiesByGroupId(groupId, limit);
+      const activities = await dbStorage.getActivitiesByGroupId(groupId, limit);
       res.json(activities);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch group activities" });
@@ -348,7 +348,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/groups/:groupId/documents", async (req: Request, res: Response) => {
     try {
       const groupId = parseInt(req.params.groupId);
-      const documents = await storage.getDocumentsByGroupId(groupId);
+      const documents = await dbStorage.getDocumentsByGroupId(groupId);
       res.json(documents);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch documents" });
@@ -358,7 +358,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/documents/:id", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
-      const document = await storage.getDocument(id);
+      const document = await dbStorage.getDocument(id);
       
       if (!document) {
         return res.status(404).json({ message: "Document not found" });
@@ -373,7 +373,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/documents", async (req: Request, res: Response) => {
     try {
       const validatedData = insertDocumentSchema.parse(req.body);
-      const document = await storage.createDocument(validatedData);
+      const document = await dbStorage.createDocument(validatedData);
       res.status(201).json(document);
     } catch (error) {
       if (error instanceof ZodError) {
@@ -383,13 +383,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to create document" });
     }
   });
+  
+  // File upload endpoint
+  app.post("/api/upload/document", upload.single('file'), async (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+      
+      // Validate required parameters
+      const { groupId, documentType, description, uploadedBy } = req.body;
+      
+      if (!groupId || !documentType || !uploadedBy) {
+        return res.status(400).json({ message: "Missing required fields: groupId, documentType, uploadedBy" });
+      }
+      
+      // Extract file information
+      const { originalname, mimetype, size, filename, path: filePath } = req.file;
+      
+      // Create document record in database
+      const document = await dbStorage.createDocument({
+        groupId: parseInt(groupId),
+        fileName: originalname,
+        fileType: mimetype,
+        fileSize: size,
+        filePath: `/uploads/documents/${filename}`,
+        documentType,
+        uploadedBy: parseInt(uploadedBy),
+        description: description || null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      
+      res.status(201).json(document);
+    } catch (error) {
+      console.error('Document upload error:', error);
+      res.status(500).json({ message: "Failed to upload document" });
+    }
+  });
+  
+  // Serve uploaded files
+  app.get("/uploads/documents/:filename", (req: Request, res: Response) => {
+    const filename = req.params.filename;
+    const filePath = path.join(documentsDir, filename);
+    
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: "Document not found" });
+    }
+    
+    // Serve the file
+    res.sendFile(filePath);
+  });
 
   app.put("/api/documents/:id", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       const validatedData = insertDocumentSchema.partial().parse(req.body);
       
-      const updatedDocument = await storage.updateDocument(id, validatedData);
+      const updatedDocument = await dbStorage.updateDocument(id, validatedData);
       
       if (!updatedDocument) {
         return res.status(404).json({ message: "Document not found" });
@@ -408,7 +460,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/documents/:id", async (req: Request, res: Response) => {
     try {
       const id = parseInt(req.params.id);
-      const success = await storage.deleteDocument(id);
+      const success = await dbStorage.deleteDocument(id);
       
       if (!success) {
         return res.status(404).json({ message: "Document not found" });
@@ -423,7 +475,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Dashboard stats
   app.get("/api/dashboard/stats", async (req: Request, res: Response) => {
     try {
-      const groups = await storage.getAllGroups();
+      const groups = await dbStorage.getAllGroups();
       
       // Get all rosters
       let totalStudents = 0;
@@ -435,7 +487,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Calculate stats
       for (const group of groups) {
-        const rosters = await storage.getRostersByGroupId(group.id);
+        const rosters = await dbStorage.getRostersByGroupId(group.id);
         
         // Count students
         const studentCount = rosters.filter(r => r.travelerType === 'Student').length;
