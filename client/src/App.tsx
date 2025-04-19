@@ -30,6 +30,7 @@ function Router() {
       <ProtectedRoute path="/rooming" component={RoomingPage} />
       <ProtectedRoute path="/reports" component={ReportsPage} />
       <ProtectedRoute path="/settings" component={SettingsPage} />
+      <ProtectedRoute path="/groups/:groupId/documents" component={DocumentsPage} />
       <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>

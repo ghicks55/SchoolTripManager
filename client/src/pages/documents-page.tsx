@@ -205,7 +205,7 @@ export default function DocumentsPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">{group?.schoolName} Documents</h1>
-          <p className="text-muted-foreground">{group?.groupName} - {group?.destination}</p>
+          <p className="text-muted-foreground">{group?.groupName} - {group?.location}</p>
         </div>
         <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
           <DialogTrigger asChild>
@@ -313,7 +313,7 @@ export default function DocumentsPage() {
                     <TableCell className="max-w-[200px] truncate">
                       {doc.description || "-"}
                     </TableCell>
-                    <TableCell>{formatDate(doc.createdAt.toString())}</TableCell>
+                    <TableCell>{doc.createdAt ? formatDate(doc.createdAt.toString()) : "-"}</TableCell>
                     <TableCell>{formatBytes(doc.fileSize)}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">

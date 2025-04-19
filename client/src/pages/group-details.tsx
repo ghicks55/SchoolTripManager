@@ -3,7 +3,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Group, Itinerary, Roster } from "@shared/schema";
+import { Group, Itinerary, Roster, Document } from "@shared/schema";
 import { 
   Card, 
   CardContent, 
@@ -140,10 +140,11 @@ export default function GroupDetails() {
             </div>
           ) : group ? (
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid grid-cols-3 w-full max-w-md mb-6">
+              <TabsList className="grid grid-cols-4 w-full max-w-md mb-6">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="itinerary">Itinerary</TabsTrigger>
                 <TabsTrigger value="roster">Roster</TabsTrigger>
+                <TabsTrigger value="documents">Documents</TabsTrigger>
               </TabsList>
               
               <TabsContent value="overview">
